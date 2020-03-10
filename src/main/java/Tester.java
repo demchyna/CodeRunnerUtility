@@ -44,6 +44,62 @@ public class Tester {
         }
     }
 
+    public static boolean isTypePublic(String typeName) {
+        try {
+            Class<?> clazz = Class.forName(typeName);
+            return Modifier.isPublic(clazz.getModifiers());
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
+    public static boolean isTypeProtected(String typeName, String fieldName) {
+        try {
+            Class<?> clazz = Class.forName(typeName);
+            return Modifier.isProtected(clazz.getModifiers());
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
+    public static boolean isTypePrivate(String typeName, String fieldName) {
+        try {
+            Class<?> clazz = Class.forName(typeName);
+            return Modifier.isPrivate(clazz.getModifiers());
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
+    public static boolean isTypePackagePrivate(String typeName, String fieldName) {
+        try {
+            Class<?> clazz = Class.forName(typeName);
+            return  !Modifier.isPublic(clazz.getModifiers())
+                    && !Modifier.isProtected(clazz.getModifiers())
+                    && !Modifier.isPrivate(clazz.getModifiers());
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
+    public static boolean isTypeStatic(String typeName, String fieldName) {
+        try {
+            Class<?> clazz = Class.forName(typeName);
+            return Modifier.isStatic(clazz.getModifiers());
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
+    public static boolean isTypeFinal(String typeName, String fieldName) {
+        try {
+            Class<?> clazz = Class.forName(typeName);
+            return Modifier.isFinal(clazz.getModifiers());
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
     public static boolean extendsTypeClass(String parentName, String childName) {
         try {
             Class<?> parentClazz = Class.forName(parentName);
@@ -440,15 +496,6 @@ public class Tester {
                 }
             }
             return false;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
-    }
-
-    public static boolean isTypePublic(String typeName) {
-        try {
-            Class<?> clazz = Class.forName(typeName);
-            return Modifier.isPublic(clazz.getModifiers());
         } catch (ClassNotFoundException e) {
             return false;
         }
