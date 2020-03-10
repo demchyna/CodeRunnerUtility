@@ -501,6 +501,26 @@ public class Tester {
         }
     }
 
+    public static boolean hasTypeAnonymousClass(String typeName, int count) {
+        int counter = 0;
+        try {
+            Class<?> outerClazz = Class.forName(typeName);
+            for (int i = 1; i < 100; i++) {
+                try {
+                    Class<?> innerClazz = Class.forName(typeName + "$" + i);
+                    if (innerClazz.getEnclosingClass() != null
+                            && outerClazz.equals(innerClazz.getEnclosingClass())
+                            && Modifier.isStatic(innerClazz.getModifiers())) {
+                        counter++;
+                    }
+                } catch (ClassNotFoundException ignored) { }
+            }
+            return counter == count;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
     private static Constructor<?> declaredConstructor(String typeName, Class<?>[] parameterTypes) {
         try {
             Class<?> clazz = Class.forName(typeName);
