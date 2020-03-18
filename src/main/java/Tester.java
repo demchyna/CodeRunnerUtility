@@ -1,7 +1,4 @@
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+import java.lang.reflect.*;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -520,6 +517,21 @@ public class Tester {
             return false;
         }
     }
+
+    public static boolean isTypeParameterized(String typeName, String[] parametersName) {
+        try {
+            Class<?> clazz = Class.forName("Wrapper");
+            TypeVariable<?>[] typeVariables = clazz.getTypeParameters();
+            String[] typeVariablesName = new String[typeVariables.length];
+            for (int i=0; i<typeVariables.length; i++) {
+                typeVariablesName[i] = typeVariables[i].getName();
+            }
+            return Arrays.equals(typeVariablesName, parametersName);
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
 
     private static Constructor<?> declaredConstructor(String typeName, Class<?>[] parameterTypes) {
         try {
