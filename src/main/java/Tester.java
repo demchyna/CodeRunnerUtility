@@ -447,6 +447,27 @@ public class Tester {
         return declaredConstructor(typeName, parameterTypes) != null;
     }
 
+    public static boolean hasTypeDeclaredConstructor(String typeName, String[] parameterTypesName) {
+        try {
+            Class<?> clazz = Class.forName(typeName);
+            Constructor<?>[] constructors = clazz.getDeclaredConstructors();
+            for (Constructor<?> constructor : constructors) {
+                Type[] types = constructor.getGenericParameterTypes();
+                String[] parameterTypes = new String[types.length];
+                for (int i = 0; i < types.length; i++) {
+                    String[] parts = types[i].getTypeName().split("\\.");
+                    parameterTypes[i] = parts[parts.length - 1];
+                }
+                if (Arrays.equals(parameterTypes, parameterTypesName)) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
     public static boolean isConstructorPublic(String typeName, Class<?>[] parameterTypes) {
         Constructor<?> constructor = declaredConstructor(typeName, parameterTypes);
         if (constructor != null) {
@@ -568,7 +589,47 @@ public class Tester {
         }
     }
 
-    public static boolean isMethodReturnTypeParameterized(String typeName, String methodName, String genericReturnTypeName) {
+    public static boolean isConstructorParameterized(String typeName, String[] parametersName) {
+        try {
+            Class<?> clazz = Class.forName(typeName);
+            Constructor<?>[] constructors = clazz.getDeclaredConstructors();
+            for (Constructor<?> constructor : constructors) {
+                TypeVariable<? extends Constructor<?>>[] typeVariables = constructor.getTypeParameters();
+                String[] typeVariablesName = new String[typeVariables.length];
+                for (int i = 0; i < typeVariables.length; i++) {
+                    typeVariablesName[i] = typeVariables[i].getName();
+                }
+                if (Arrays.equals(typeVariablesName, parametersName)) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
+    public static boolean isMethodParameterized(String typeName, String methodName, String[] parametersName) {
+        try {
+            Class<?> clazz = Class.forName(typeName);
+            Method[] methods = clazz.getDeclaredMethods();
+            for (Method method : methods) {
+                if (methodName.equals(method.getName())) {
+                    TypeVariable<Method>[] typeVariables = method.getTypeParameters();
+                    String[] typeVariablesName = new String[typeVariables.length];
+                    for (int i = 0; i < typeVariables.length; i++) {
+                        typeVariablesName[i] = typeVariables[i].getName();
+                    }
+                    return Arrays.equals(typeVariablesName, parametersName);
+                }
+            }
+            return false;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
+    public static boolean hasMethodParameterizedReturnType(String typeName, String methodName, String genericReturnTypeName) {
         try {
             Class<?> clazz = Class.forName(typeName);
             Method[] methods = clazz.getDeclaredMethods();
