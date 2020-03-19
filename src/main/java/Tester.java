@@ -224,6 +224,27 @@ public class Tester {
         }
     }
 
+    public static boolean hasTypeDeclaredMethod(String typeName, String methodName, String[] parameterTypesName) {
+        try {
+            Class<?> clazz = Class.forName(typeName);
+            Method[] methods = clazz.getDeclaredMethods();
+            for (Method method : methods) {
+                Type[] types = method.getGenericParameterTypes();
+                String[] parameterTypes = new String[types.length];
+                for (int i = 0; i < types.length; i++) {
+                    String[] parts = types[i].getTypeName().split("\\.");
+                    parameterTypes[i] = parts[parts.length - 1];
+                }
+                if (methodName.equals(method.getName()) && Arrays.equals(parameterTypes, parameterTypesName)) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
     public static boolean isMethodPublic(String typeName, String methodName, Class<?>[] parameterTypes) {
         try {
             Class<?> clazz = Class.forName(typeName);
@@ -520,7 +541,7 @@ public class Tester {
 
     public static boolean isTypeParameterized(String typeName, String[] parametersName) {
         try {
-            Class<?> clazz = Class.forName("Wrapper");
+            Class<?> clazz = Class.forName(typeName);
             TypeVariable<?>[] typeVariables = clazz.getTypeParameters();
             String[] typeVariablesName = new String[typeVariables.length];
             for (int i=0; i<typeVariables.length; i++) {
@@ -532,6 +553,36 @@ public class Tester {
         }
     }
 
+    public static boolean isFieldTypeParameterized(String typeName, String fieldName, String genericTypeName) {
+        try {
+            Class<?> clazz = Class.forName(typeName);
+            Field[] fields = clazz.getDeclaredFields();
+            for (Field field : fields) {
+                if (fieldName.equals(field.getName()) && field.getGenericType().getTypeName().equals(genericTypeName)) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
+    public static boolean isMethodReturnTypeParameterized(String typeName, String methodName, String genericReturnTypeName) {
+        try {
+            Class<?> clazz = Class.forName(typeName);
+            Method[] methods = clazz.getDeclaredMethods();
+            for (Method method : methods) {
+                if (methodName.equals(method.getName())
+                        && method.getGenericReturnType().getTypeName().equals(genericReturnTypeName)) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
 
     private static Constructor<?> declaredConstructor(String typeName, Class<?>[] parameterTypes) {
         try {
