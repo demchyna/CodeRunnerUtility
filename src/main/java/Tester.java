@@ -232,7 +232,11 @@ public class Tester {
                 Type[] types = method.getGenericParameterTypes();
                 String[] parameterTypes = new String[types.length];
                 for (int i = 0; i < types.length; i++) {
-                    String[] parts = types[i].getTypeName().split("\\.");
+                    String parameterTypeName = types[i].getTypeName();
+                    if (parameterTypeName.contains("<")) {
+                        parameterTypeName = parameterTypeName.substring(0, types[i].getTypeName().indexOf("<"));
+                    }
+                    String[] parts = parameterTypeName.split("\\.");
                     parameterTypes[i] = parts[parts.length - 1];
                 }
                 if (methodName.equals(method.getName()) && Arrays.equals(parameterTypes, parameterTypesName)) {
