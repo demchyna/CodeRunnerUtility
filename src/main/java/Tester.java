@@ -1,3 +1,6 @@
+import org.apache.commons.lang3.builder.EqualsBuilder;
+
+import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -50,7 +53,7 @@ public class Tester {
         }
     }
 
-    public static boolean isTypeProtected(String typeName, String fieldName) {
+    public static boolean isTypeProtected(String typeName) {
         try {
             Class<?> clazz = Class.forName(typeName);
             return Modifier.isProtected(clazz.getModifiers());
@@ -59,7 +62,7 @@ public class Tester {
         }
     }
 
-    public static boolean isTypePrivate(String typeName, String fieldName) {
+    public static boolean isTypePrivate(String typeName) {
         try {
             Class<?> clazz = Class.forName(typeName);
             return Modifier.isPrivate(clazz.getModifiers());
@@ -68,7 +71,7 @@ public class Tester {
         }
     }
 
-    public static boolean isTypePackagePrivate(String typeName, String fieldName) {
+    public static boolean isTypePackagePrivate(String typeName) {
         try {
             Class<?> clazz = Class.forName(typeName);
             return  !Modifier.isPublic(clazz.getModifiers())
@@ -79,7 +82,7 @@ public class Tester {
         }
     }
 
-    public static boolean isTypeStatic(String typeName, String fieldName) {
+    public static boolean isTypeStatic(String typeName) {
         try {
             Class<?> clazz = Class.forName(typeName);
             return Modifier.isStatic(clazz.getModifiers());
@@ -88,7 +91,7 @@ public class Tester {
         }
     }
 
-    public static boolean isTypeFinal(String typeName, String fieldName) {
+    public static boolean isTypeFinal(String typeName) {
         try {
             Class<?> clazz = Class.forName(typeName);
             return Modifier.isFinal(clazz.getModifiers());
@@ -107,11 +110,30 @@ public class Tester {
         }
     }
 
-    public static boolean implementsTypeInterface(String parentName, String childName) {
+    public static boolean implementsInterface(String parentName, String childName) {
         try {
             Class<?> parentClazz = Class.forName(parentName);
             Class<?> childClazz = Class.forName(childName);
             return parentClazz.isAssignableFrom(childClazz) && parentClazz.isInterface();
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
+    public static boolean implementsGenericInterface(String parentName, String childName, String[] parametersName) {
+        try {
+            Class<?> parentClazz = Class.forName(parentName);
+            Class<?> childClazz = Class.forName(childName);
+
+            if (parentClazz.isAssignableFrom(childClazz) && parentClazz.isInterface()) {
+                TypeVariable<? extends Class<?>>[] typeVariables = parentClazz.getTypeParameters();
+                String[] typeVariablesName = new String[typeVariables.length];
+                for (int i = 0; i < typeVariables.length; i++) {
+                    typeVariablesName[i] = typeVariables[i].getName();
+                }
+                return Arrays.equals(typeVariablesName, parametersName);
+            }
+            return false;
         } catch (ClassNotFoundException e) {
             return false;
         }
@@ -253,7 +275,6 @@ public class Tester {
         try {
             Class<?> clazz = Class.forName(typeName);
             Method method = clazz.getDeclaredMethod(methodName, parameterTypes);
-
             return Modifier.isPublic(method.getModifiers());
         } catch (ClassNotFoundException | NoSuchMethodException e) {
             System.out.println(e.getMessage());
@@ -261,30 +282,30 @@ public class Tester {
         }
     }
 
-    public static boolean isMethodProtected(String typeName, String methodName) {
+    public static boolean isMethodProtected(String typeName, String methodName, Class<?>[] parameterTypes) {
         try {
             Class<?> clazz = Class.forName(typeName);
-            Method method = clazz.getDeclaredMethod(methodName);
+            Method method = clazz.getDeclaredMethod(methodName, parameterTypes);
             return Modifier.isProtected(method.getModifiers());
         } catch (ClassNotFoundException | NoSuchMethodException e) {
             return false;
         }
     }
 
-    public static boolean isMethodPrivate(String typeName, String methodName) {
+    public static boolean isMethodPrivate(String typeName, String methodName, Class<?>[] parameterTypes) {
         try {
             Class<?> clazz = Class.forName(typeName);
-            Method method = clazz.getDeclaredMethod(methodName);
+            Method method = clazz.getDeclaredMethod(methodName, parameterTypes);
             return Modifier.isPrivate(method.getModifiers());
         } catch (ClassNotFoundException | NoSuchMethodException e) {
             return false;
         }
     }
 
-    public static boolean isMethodPackagePrivate(String typeName, String methodName) {
+    public static boolean isMethodPackagePrivate(String typeName, String methodName, Class<?>[] parameterTypes) {
         try {
             Class<?> clazz = Class.forName(typeName);
-            Method method = clazz.getDeclaredMethod(methodName);
+            Method method = clazz.getDeclaredMethod(methodName, parameterTypes);
             return  !Modifier.isPublic(method.getModifiers())
                     && !Modifier.isProtected(method.getModifiers())
                     && !Modifier.isPrivate(method.getModifiers());
@@ -293,10 +314,10 @@ public class Tester {
         }
     }
 
-    public static boolean isMethodStatic(String typeName, String methodName) {
+    public static boolean isMethodStatic(String typeName, String methodName, Class<?>[] parameterTypes) {
         try {
             Class<?> clazz = Class.forName(typeName);
-            Method method = clazz.getDeclaredMethod(methodName);
+            Method method = clazz.getDeclaredMethod(methodName, parameterTypes);
             return Modifier.isStatic(method.getModifiers());
         } catch (ClassNotFoundException | NoSuchMethodException e) {
             return false;
@@ -374,10 +395,25 @@ public class Tester {
         }
     }
 
+    public static boolean hasFieldType(String typeName, String fieldName, String fieldTypeName) {
+        try {
+            Class<?> clazz = Class.forName(typeName);
+            Field[] fields = clazz.getDeclaredFields();
+            for (Field field : fields) {
+                if (fieldName.equals(field.getName()) && field.getType().getName().equals(fieldTypeName)) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
     public static boolean hasFieldDefaultValue(String typeName, String fieldName) {
         try {
             Class<?> clazz = Class.forName(typeName);
-            Object object = clazz.newInstance();
+            Object object = clazz.getDeclaredConstructor().newInstance();
             Field[] fields = clazz.getDeclaredFields();
             for (Field field : fields) {
                 if (fieldName.equals(field.getName())) {
@@ -393,7 +429,7 @@ public class Tester {
                 }
             }
             return false;
-        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
+        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException e) {
             return false;
         }
     }
@@ -401,7 +437,7 @@ public class Tester {
     public static boolean hasFieldValue(String typeName, String fieldName, Object value) {
         try {
             Class<?> clazz = Class.forName(typeName);
-            Object object = clazz.newInstance();
+            Object object = clazz.getDeclaredConstructor().newInstance();
             Field[] fields = clazz.getDeclaredFields();
             for (Field field : fields) {
                 if (fieldName.equals(field.getName())) {
@@ -427,7 +463,7 @@ public class Tester {
                 }
             }
             return false;
-        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | ClassCastException e) {
+        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | ClassCastException | NoSuchMethodException | InvocationTargetException e) {
             return false;
         }
     }
@@ -496,6 +532,27 @@ public class Tester {
         return false;
     }
 
+    public static boolean isConstructorPrivate(String typeName, String[] parameterTypesName) {
+        try {
+            Class<?> clazz = Class.forName(typeName);
+            Constructor<?>[] constructors = clazz.getDeclaredConstructors();
+            for (Constructor<?> constructor : constructors) {
+                Type[] types = constructor.getGenericParameterTypes();
+                String[] parameterTypes = new String[types.length];
+                for (int i = 0; i < types.length; i++) {
+                    String[] parts = types[i].getTypeName().split("\\.");
+                    parameterTypes[i] = parts[parts.length - 1];
+                }
+                if (Arrays.equals(parameterTypes, parameterTypesName) && Modifier.isPrivate(constructor.getModifiers())) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
     public static boolean isConstructorPackagePrivate(String typeName, Class<?>[] parameterTypes) {
         Constructor<?> constructor = declaredConstructor(typeName, parameterTypes);
         if (constructor != null) {
@@ -533,10 +590,8 @@ public class Tester {
         try {
             Class<?> outerClazz = Class.forName(outerTypeName);
             Class<?> innerClazz = Class.forName(outerTypeName + "$" + innerTypeName);
-            if (outerClazz.getEnclosingClass() == null) {
-                if (innerClazz.getEnclosingClass() != null) {
-                    return outerClazz.equals(innerClazz.getEnclosingClass()) && Modifier.isStatic(innerClazz.getModifiers());
-                }
+            if (innerClazz.getEnclosingClass() != null) {
+                return outerClazz.equals(innerClazz.getEnclosingClass()) && Modifier.isStatic(innerClazz.getModifiers());
             }
             return false;
         } catch (ClassNotFoundException e) {
@@ -633,6 +688,29 @@ public class Tester {
         }
     }
 
+    public static boolean hasParameterizedMethodTypeParameterBound(String typeName, String methodName, String parameterName, String boundName) {
+        try {
+            Class<?> clazz = Class.forName(typeName);
+            Method[] methods = clazz.getDeclaredMethods();
+            for (Method method : methods) {
+                if (methodName.equals(method.getName())) {
+                    TypeVariable<Method>[] typeVariables = method.getTypeParameters();
+                    for (TypeVariable<Method> typeVariable : typeVariables) {
+                        if (parameterName.equals(typeVariable.getName())) {
+                            Type[] bounds = typeVariable.getBounds();
+                            for (Type bound : bounds) {
+                                return boundName.equals(bound.getTypeName());
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
     public static boolean hasMethodParameterizedReturnType(String typeName, String methodName, String genericReturnTypeName) {
         try {
             Class<?> clazz = Class.forName(typeName);
@@ -645,6 +723,49 @@ public class Tester {
             }
             return false;
         } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
+    public static boolean hasTypeAnnotation(String typeName, Class<?> annotationType) {
+        try {
+            Class<?> clazz = Class.forName(typeName);
+            Annotation[] annotations = clazz.getDeclaredAnnotations();
+            for (Annotation annotation : annotations) {
+                if (annotationType.equals(annotation.annotationType())) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
+    public static boolean hasAnnotationAttributeValue(String typeName, Class<? extends Annotation> annotationType, String attributeName, Class<?> valueType, Object value) {
+        try {
+            Class<?> clazz = Class.forName(typeName);
+            Annotation[] annotations = clazz.getDeclaredAnnotations();
+            for (Annotation annotation : annotations) {
+                if (annotationType.equals(annotation.annotationType())) {
+                    Object instance = clazz.getAnnotation(annotationType);
+                    Class<? extends Annotation> annotationClazz = annotation.annotationType();
+                    Method[] attributes = annotationClazz.getDeclaredMethods();
+                    for (Method attribute : attributes) {
+                        if (attribute.getName().equals(attributeName)) {
+                            try {
+                                Object result = attribute.invoke(instance);
+                                return EqualsBuilder.reflectionEquals(result, value);
+                            } catch (IllegalAccessException | InvocationTargetException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
             return false;
         }
     }
